@@ -79,7 +79,6 @@ def grafikoa_sortu(reynolds, naca_zerrenda, izenburua):
         yaxis_title="Eraginkortasuna (Cl/Cd)",
         hovermode="x unified",
         template="plotly_white",
-        # Hemen aldatu da kondaira eskuinera joateko (orientation="v")
         legend=dict(
             title="Profilak<br>(Klik ezkutatzeko)",
             bgcolor="rgba(255,255,255,0.8)",
@@ -91,7 +90,7 @@ def grafikoa_sortu(reynolds, naca_zerrenda, izenburua):
             xanchor="left",
             x=1.02
         ),
-        margin=dict(l=40, r=150, t=80, b=40) # Eskuineko marjina (r) handitu da kondaira ondo sartzeko
+        margin=dict(l=40, r=150, t=80, b=40) 
     )
     fig.add_hline(y=0, line_dash="dash", line_color="#7F8C8D", line_width=1.5)
     return fig, naca_baliodunak
@@ -307,10 +306,15 @@ elif st.session_state.fase == "LABURPENA":
     st.success(f"✨ {st.session_state.iterazioa}. Iterazioa arrakastaz amaitu da!")
     
     st.header("📊 Uneko Iterazioaren Emaitzak")
+    
+    # Azken taularako Reynolds-ak birkalkulatzen ditugu uneko datuekin
+    reynolds_amaiera = kalkulatu_reynolds(st.session_state.erradioak, st.session_state.kordak)
+    
     df_emaitzak = pd.DataFrame({
         "Estazioa": range(1, st.session_state.puntu_kopurua + 1),
         "Erradioa [m]": np.round(st.session_state.erradioak, 2),
         "Erabilitako Korda [m]": st.session_state.kordak,
+        "Reynolds": [f"{re:.2e}" for re in reynolds_amaiera], # <--- Hemen sartu da Reynolds zutabea
         "Aukeratutako NACA": st.session_state.amaierako_nacak
     })
     st.table(df_emaitzak)
