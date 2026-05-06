@@ -35,11 +35,24 @@ if "fase" not in st.session_state:
 
 # --- FUNTZIO LAGUNTZAILEAK ---
 def kalkulatu_reynolds(erradioa, korda):
+    """Reynolds kalkulua MATLABeko Schmitz/Betz eredu zehatzarekin"""
     p_air = 1.225
     mu = 1.789e-5
-    u = erradioa * st.session_state.rpm * np.pi / 30
-    w = np.sqrt(u**2 + st.session_state.v_rated**2)
-    return korda * w * p_air / mu
+    
+    omega = st.session_state.rpm * np.pi / 30
+    v_wind = st.session_state.v_rated
+    
+    # Tip-Speed Ratio lokala (lambda_r)
+    lambda_r = (omega * erradioa) / v_wind
+    
+    # Fluxuaren angelu optimoa
+    phi_rad = (2.0 / 3.0) * np.arctan(1.0 / lambda_r)
+    
+    # Abiadura erlatiboa (a = 1/3 induzio axial optimoarekin)
+    a = 1.0 / 3.0
+    u_rel = v_wind * (1 - a) / np.sin(phi_rad)
+    
+    return korda * u_rel * p_air / mu
 
 def grafikoa_sortu(reynolds, naca_zerrenda, izenburua):
     alphas = np.linspace(st.session_state.alpha_min, st.session_state.alpha_max, st.session_state.alpha_steps)
@@ -66,18 +79,19 @@ def grafikoa_sortu(reynolds, naca_zerrenda, izenburua):
         yaxis_title="Eraginkortasuna (Cl/Cd)",
         hovermode="x unified",
         template="plotly_white",
+        # Hemen aldatu da kondaira eskuinera joateko (orientation="v")
         legend=dict(
-            title="Profilak (Egin klik ezkutatzeko)",
+            title="Profilak<br>(Klik ezkutatzeko)",
             bgcolor="rgba(255,255,255,0.8)",
             bordercolor="#E5E7EB",
             borderwidth=1,
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1
+            orientation="v",
+            yanchor="top",
+            y=1,
+            xanchor="left",
+            x=1.02
         ),
-        margin=dict(l=40, r=40, t=80, b=40)
+        margin=dict(l=40, r=150, t=80, b=40) # Eskuineko marjina (r) handitu da kondaira ondo sartzeko
     )
     fig.add_hline(y=0, line_dash="dash", line_color="#7F8C8D", line_width=1.5)
     return fig, naca_baliodunak
@@ -196,7 +210,6 @@ if st.session_state.fase == "KONFIG":
         "Reynolds": [f"{re:.2e}" for re in reynolds_array]
     })
     
-    # Korda zutabea bakarrik utzi editagarri moduan
     df_editatua = st.data_editor(
         df_kordak, 
         num_rows="fixed", 
