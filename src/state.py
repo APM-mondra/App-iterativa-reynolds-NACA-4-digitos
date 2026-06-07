@@ -8,7 +8,7 @@ import streamlit as st
 
 def init_session_state() -> None:
     defaults = {
-        "fase": "KONFIG",
+        "fase": "HASIERA",
         "iterazioa": 1,
         "uneko_estazioa": 0,
         "puntu_kopurua": 8,
@@ -25,6 +25,7 @@ def init_session_state() -> None:
         "amaierako_nacak": [],
         "aero_cache": {},
         "selected_preview_naca": None,
+        "confirm_reset_config": False,
     }
 
     for key, value in defaults.items():
@@ -44,6 +45,13 @@ def init_session_state() -> None:
 
 def fasea_aldatu(fase_berria: str) -> None:
     st.session_state.fase = fase_berria
+    st.session_state.confirm_reset_config = False
+    st.rerun()
+
+
+def go_to_hasiera() -> None:
+    st.session_state.fase = "HASIERA"
+    st.session_state.confirm_reset_config = False
     st.rerun()
 
 
@@ -70,6 +78,11 @@ def reset_iteration_state() -> None:
     st.session_state.uneko_estazioa = 0
     st.session_state.aero_cache = {}
     st.session_state.selected_preview_naca = None
+
+
+def reset_to_konfig() -> None:
+    reset_iteration_state()
+    fasea_aldatu("KONFIG")
 
 
 def clear_aero_cache() -> None:

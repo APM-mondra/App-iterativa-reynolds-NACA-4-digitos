@@ -6,6 +6,7 @@ import pandas as pd
 import streamlit as st
 
 from src.aero import get_or_compute_phase_results, get_phase_cache_key
+from src.i18n import eu
 from src.naca import nacas_fase1, nacas_fase2, nacas_fase3
 from src.physics import calc_reynolds
 from src.plots import (
@@ -21,17 +22,17 @@ from src.state import estazioa_atzera, fasea_aldatu
 
 def _render_ranking_table(results: list[dict]) -> None:
     if not results:
-        st.warning("Ez da profil baliodunik aurkitu.")
+        st.warning(eu.STEPS["no_valid_profiles"])
         return
 
     df = pd.DataFrame(
         [
             {
-                "NACA": item["naca"],
-                "Cl/Cd max": round(item["max_cl_cd"], 2),
-                "Alpha opt (°)": round(item["alpha_opt"], 2),
-                "Cl @ opt": round(item["cl_at_opt"], 3),
-                "Cd @ opt": round(item["cd_at_opt"], 4),
+                eu.STEPS["rank_naca"]: item["naca"],
+                eu.STEPS["rank_cl_cd_max"]: round(item["max_cl_cd"], 2),
+                eu.STEPS["rank_alpha_opt"]: round(item["alpha_opt"], 2),
+                eu.STEPS["rank_cl_opt"]: round(item["cl_at_opt"], 3),
+                eu.STEPS["rank_cd_opt"]: round(item["cd_at_opt"], 4),
             }
             for item in results
         ]
@@ -44,7 +45,7 @@ def _render_profile_selector(
     key_prefix: str,
     zutabe_kop: int = 4,
 ) -> str | None:
-    st.markdown("**Egin klik profil batean edo hautatu zerrendatik:**")
+    st.markdown(f"**{eu.STEPS['select_prompt']}**")
 
     cols = st.columns(zutabe_kop)
     aukeratua = None
@@ -57,9 +58,9 @@ def _render_profile_selector(
             aukeratua = aukera
 
     selectbox_choice = st.selectbox(
-        "Profila hautatu",
+        eu.STEPS["select_profile"],
         options=["--"] + validos,
-        format_func=lambda x: f"NACA {x}" if x != "--" else "Hautatu...",
+        format_func=lambda x: f"NACA {x}" if x != "--" else eu.STEPS["select_placeholder"],
         key=f"{key_prefix}_select",
     )
     if selectbox_choice != "--":
@@ -78,8 +79,6 @@ def _render_step_results(
     on_select,
     zutabe_kop: int = 4,
 ) -> None:
-    st.subheader(title)
-
     idx = st.session_state.uneko_estazioa
     re = calc_reynolds(
         st.session_state.erradioak[idx],
@@ -109,7 +108,13 @@ def _render_step_results(
 
     with col_main:
         tab_eff, tab_cl, tab_cd, tab_polar, tab_rank = st.tabs(
-            ["Cl/Cd", "Cl", "Cd", "Polarra", "Ranking"]
+            [
+                eu.STEPS["tab_efficiency"],
+                eu.STEPS["tab_cl"],
+                eu.STEPS["tab_cd"],
+                eu.STEPS["tab_polar"],
+                eu.STEPS["tab_ranking"],
+            ]
         )
 
         with tab_eff:
@@ -151,7 +156,7 @@ def _render_step_results(
     with col_side:
         if validos:
             preview_choice = st.selectbox(
-                "Aurrebista",
+                eu.STEPS["preview"],
                 options=validos,
                 index=validos.index(preview_naca) if preview_naca in validos else 0,
                 format_func=lambda x: f"NACA {x}",
@@ -181,10 +186,10 @@ def render_step1_page() -> None:
 
     _render_step_results(
         fase="1_URRATSA",
-        title="1. urratsa: kurbaduraren aukeraketa (lehen digitua)",
+        title=eu.PHASES["1_URRATSA"]["title"],
         naca_list=nacas_fase1(),
         key_prefix="p1",
-        back_label="Aurreko estaziora atzera",
+        back_label=eu.STEPS["back_station"],
         back_callback=estazioa_atzera,
         on_select=on_select,
     )
@@ -192,13 +197,13 @@ def render_step1_page() -> None:
 
 def render_step2_page() -> None:
     if st.session_state.m_hautatua == "0":
-        st.warning("Profil simetrikoa detektatu da (kurbadura = 0). Kurbaduraren posizioa saltatzen.")
+        st.warning(eu.STEPS["symmetric_warning"])
         st.session_state.p_hautatua = "0"
 
         col_atzera, col_huts, col_aurrera = st.columns([1, 4, 1])
-        if col_atzera.button("Aurrekoa", use_container_width=True):
+        if col_atzera.button(eu.STEPS["btn_previous"], use_container_width=True):
             fasea_aldatu("1_URRATSA")
-        if col_aurrera.button("Lodierara joan", type="primary", use_container_width=True):
+        if col_aurrera.button(eu.STEPS["btn_to_thickness"], type="primary", use_container_width=True):
             fasea_aldatu("3_URRATSA")
         return
 
@@ -206,12 +211,13 @@ def render_step2_page() -> None:
         st.session_state.p_hautatua = aukera[1]
         fasea_aldatu("3_URRATSA")
 
+    title = f"{eu.PHASES['2_URRATSA']['title']} (M={st.session_state.m_hautatua})"
     _render_step_results(
         fase="2_URRATSA",
-        title=f"2. urratsa: kurbaduraren posizioa (M={st.session_state.m_hautatua})",
+        title=title,
         naca_list=nacas_fase2(st.session_state.m_hautatua),
         key_prefix="p2",
-        back_label="Kurbadurara atzera (1. urratsa)",
+        back_label=eu.STEPS["back_step1"],
         back_callback=lambda: fasea_aldatu("1_URRATSA"),
         on_select=on_select,
     )
@@ -233,12 +239,16 @@ def render_step3_page() -> None:
         else:
             fasea_aldatu("2_URRATSA")
 
+    title = (
+        f"{eu.PHASES['3_URRATSA']['title']} "
+        f"(NACA {st.session_state.m_hautatua}{st.session_state.p_hautatua}XX)"
+    )
     _render_step_results(
         fase="3_URRATSA",
-        title=f"3. urratsa: lodiera (NACA {st.session_state.m_hautatua}{st.session_state.p_hautatua}XX)",
+        title=title,
         naca_list=nacas_fase3(st.session_state.m_hautatua, st.session_state.p_hautatua),
         key_prefix="p3",
-        back_label="Posiziora atzera (2. urratsa)",
+        back_label=eu.STEPS["back_step2"],
         back_callback=back_callback,
         on_select=on_select,
         zutabe_kop=6,
