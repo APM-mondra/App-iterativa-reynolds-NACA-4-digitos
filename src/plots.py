@@ -8,28 +8,26 @@ from plotly.subplots import make_subplots
 from src.i18n import eu
 from src.naca import get_airfoil_coordinates
 from src.ui.theme import (
+    COLOR_ACCENT,
     COLOR_BORDER,
     COLOR_MUTED,
-    COLOR_TEXT,
+    FONT_SANS,
     PLOT_COLORS,
-    PLOT_FONT_SIZE,
-    PLOT_TITLE_SIZE,
     apply_scientific_axes,
     apply_scientific_legend,
+    get_figure_title,
     get_plotly_layout_defaults,
     get_series_style,
 )
+
+ACCENT = COLOR_ACCENT
+NEUTRAL = "#8aa0ad"
 
 
 def _finalize_figure(fig: go.Figure, title: str, x_title: str, y_title: str, legend: bool = True) -> go.Figure:
     fig.update_layout(
         **get_plotly_layout_defaults(),
-        title=dict(
-            text=title,
-            font=dict(size=PLOT_TITLE_SIZE, color=COLOR_TEXT),
-            x=0,
-            xanchor="left",
-        ),
+        title=get_figure_title(title),
         xaxis_title=x_title,
         yaxis_title=y_title,
     )
@@ -86,7 +84,7 @@ def build_cl_figure(results: list[dict], title: str, highlight_naca: str | None 
     fig.add_hline(
         y=1.0,
         line_dash="dot",
-        line_color=COLOR_TEXT,
+        line_color=ACCENT,
         line_width=1,
         annotation_text=eu.PLOTS["cl_target"],
         annotation_font=dict(size=10, color=COLOR_MUTED),
@@ -157,7 +155,7 @@ def build_ranking_figure(results: list[dict]) -> go.Figure:
         go.Bar(
             x=labels,
             y=values,
-            marker_color=[COLOR_TEXT if i == 0 else "#888888" for i in range(len(results))],
+            marker_color=[ACCENT if i == 0 else NEUTRAL for i in range(len(results))],
             marker_line=dict(color=COLOR_BORDER, width=0.5),
         )
     )
@@ -186,8 +184,8 @@ def build_airfoil_geometry_figure(naca: str) -> go.Figure:
             mode="lines",
             fill="toself",
             name=f"NACA {naca}",
-            line=dict(color=COLOR_TEXT, width=1.5),
-            fillcolor="#f5f5f5",
+            line=dict(color=ACCENT, width=1.8),
+            fillcolor="rgba(28, 93, 130, 0.08)",
         )
     )
     _finalize_figure(
@@ -209,8 +207,8 @@ def build_blade_planform_figure(erradioak, kordak) -> go.Figure:
             y=kordak,
             mode="lines+markers",
             name=eu.PLOTS["planform_y"],
-            line=dict(color=COLOR_TEXT, width=1.5),
-            marker=dict(size=5, color=COLOR_TEXT, line=dict(width=0.5, color=COLOR_BORDER)),
+            line=dict(color=ACCENT, width=1.8),
+            marker=dict(size=6, color=ACCENT, line=dict(width=0.5, color="#ffffff")),
         )
     )
     _finalize_figure(
@@ -229,7 +227,7 @@ def build_reynolds_figure(estazioak, reynolds_values) -> go.Figure:
         go.Bar(
             x=estazioak,
             y=reynolds_values,
-            marker_color="#888888",
+            marker_color=ACCENT,
             marker_line=dict(color=COLOR_BORDER, width=0.5),
             name=eu.PLOTS["reynolds_y"],
         )
@@ -252,8 +250,8 @@ def build_tsr_figure(estazioak, lambda_values) -> go.Figure:
             y=lambda_values,
             mode="lines+markers",
             name=eu.PLOTS["tsr_y"],
-            line=dict(color=COLOR_TEXT, width=1.5),
-            marker=dict(size=5, color=COLOR_TEXT, line=dict(width=0.5, color=COLOR_BORDER)),
+            line=dict(color=ACCENT, width=1.8),
+            marker=dict(size=6, color=ACCENT, line=dict(width=0.5, color="#ffffff")),
         )
     )
     _finalize_figure(
@@ -275,8 +273,8 @@ def build_spanwise_naca_figure(estazioak, nacak) -> go.Figure:
             mode="markers+text",
             text=[f"NACA {naca}" for naca in nacak],
             textposition="middle right",
-            textfont=dict(family="STIX Two Text, Times New Roman, Times, serif", size=11),
-            marker=dict(size=8, color=COLOR_TEXT, symbol="square", line=dict(width=0.5, color=COLOR_BORDER)),
+            textfont=dict(family=FONT_SANS, size=11),
+            marker=dict(size=9, color=ACCENT, symbol="square", line=dict(width=0.5, color="#ffffff")),
         )
     )
     _finalize_figure(
@@ -297,8 +295,8 @@ def build_summary_dual_axis_figure(estazioak, kordak, reynolds_values) -> go.Fig
             y=kordak,
             mode="lines+markers",
             name=eu.PLOTS["dual_chord"],
-            line=dict(color=COLOR_TEXT, width=1.5),
-            marker=dict(size=5, color=COLOR_TEXT),
+            line=dict(color=ACCENT, width=1.8),
+            marker=dict(size=6, color=ACCENT),
         ),
         secondary_y=False,
     )
@@ -308,19 +306,14 @@ def build_summary_dual_axis_figure(estazioak, kordak, reynolds_values) -> go.Fig
             y=reynolds_values,
             mode="lines+markers",
             name=eu.PLOTS["dual_reynolds"],
-            line=dict(color="#888888", width=1.5, dash="dash"),
-            marker=dict(size=5, color="#888888"),
+            line=dict(color=NEUTRAL, width=1.8, dash="dash"),
+            marker=dict(size=6, color=NEUTRAL),
         ),
         secondary_y=True,
     )
     fig.update_layout(
         **get_plotly_layout_defaults(),
-        title=dict(
-            text=eu.PLOTS["dual_title"],
-            font=dict(size=PLOT_TITLE_SIZE, color=COLOR_TEXT),
-            x=0,
-            xanchor="left",
-        ),
+        title=get_figure_title(eu.PLOTS["dual_title"]),
         legend=dict(
             orientation="h",
             font=dict(size=10),
