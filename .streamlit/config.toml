@@ -1,9 +1,9 @@
 [theme]
-primaryColor = "#1F618D"
+primaryColor = "#1a1a1a"
 backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F0F4F8"
-textColor = "#2C3E50"
-font = "sans serif"
+secondaryBackgroundColor = "#F7F7F7"
+textColor = "#1a1a1a"
+font = "serif"
 
 [runner]
 fastReruns = true

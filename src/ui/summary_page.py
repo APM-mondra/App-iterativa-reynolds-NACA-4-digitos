@@ -15,11 +15,12 @@ from src.plots import (
     build_summary_dual_axis_figure,
 )
 from src.state import fasea_aldatu
+from src.ui.theme import academic_note, academic_result, section_divider
 
 
 def render_summary_page() -> None:
-    st.success(eu.SUMMARY["success"].format(n=st.session_state.iterazioa))
-    st.markdown(eu.PHASES["LABURPENA"]["description"])
+    academic_result(eu.SUMMARY["success"].format(n=st.session_state.iterazioa))
+    academic_note(eu.PHASES["LABURPENA"]["description"])
 
     reynolds_amaiera = calc_reynolds_array(
         st.session_state.erradioak,
@@ -83,7 +84,8 @@ def render_summary_page() -> None:
             key="summary_profiles",
         )
 
-    st.header(eu.SUMMARY["download_profiles_title"])
+    section_divider()
+    st.markdown(f"### {eu.SUMMARY['download_profiles_title']}")
     st.markdown(eu.SUMMARY["download_profiles_body"])
     naca_bakarrak = list(dict.fromkeys(st.session_state.amaierako_nacak))
     if naca_bakarrak:
@@ -99,25 +101,24 @@ def render_summary_page() -> None:
                     key=f"download_{naca}",
                 )
 
-    st.divider()
-    st.header(eu.SUMMARY["next_iteration_title"])
+    section_divider()
+    st.markdown(f"### {eu.SUMMARY['next_iteration_title']}")
 
-    with st.container(border=True):
-        df_berriak = st.data_editor(
-            pd.DataFrame(
-                {
-                    eu.CONFIG["col_station"]: estazioak,
-                    eu.SUMMARY["col_new_chord"]: np.round(st.session_state.kordak, 3),
-                }
-            ),
-            hide_index=True,
-            use_container_width=True,
-            key="summary_next_chords",
-        )
+    df_berriak = st.data_editor(
+        pd.DataFrame(
+            {
+                eu.CONFIG["col_station"]: estazioak,
+                eu.SUMMARY["col_new_chord"]: np.round(st.session_state.kordak, 3),
+            }
+        ),
+        hide_index=True,
+        use_container_width=True,
+        key="summary_next_chords",
+    )
 
     _, col_btn, _ = st.columns([1, 2, 1])
     with col_btn:
-        if st.button(eu.SUMMARY["start_new_iteration"], type="primary", use_container_width=True):
+        if st.button(eu.SUMMARY["start_new_iteration"], use_container_width=True):
             st.session_state.kordak = df_berriak[eu.SUMMARY["col_new_chord"]].values
             st.session_state.iterazioa += 1
             st.session_state.aero_cache = {}

@@ -7,6 +7,7 @@ import streamlit as st
 from src.i18n import eu
 from src.physics import calc_station_metrics
 from src.state import go_to_hasiera, reset_to_konfig
+from src.ui.theme import academic_warning, header_rule, section_divider
 
 
 ANALYSIS_PHASES = {"1_URRATSA", "2_URRATSA", "3_URRATSA"}
@@ -15,14 +16,17 @@ ANALYSIS_PHASES = {"1_URRATSA", "2_URRATSA", "3_URRATSA"}
 def render_header() -> None:
     if st.session_state.fase == "HASIERA":
         st.title(eu.APP_TITLE)
-        st.caption(eu.APP_CAPTION)
+        st.markdown(f"*{eu.APP_CAPTION}*")
+        header_rule()
         return
 
     phase = eu.PHASES.get(st.session_state.fase, {})
-    st.title(f"{eu.APP_TITLE} — {st.session_state.iterazioa}. iterazioa")
-    if phase.get("title"):
-        st.subheader(phase["title"])
-    st.caption(eu.APP_CAPTION)
+    st.title(f"{eu.APP_TITLE}")
+    st.markdown(
+        f"**{st.session_state.iterazioa}. iterazioa** — {phase.get('title', '')}"
+    )
+    st.markdown(f"*{eu.APP_CAPTION}*")
+    header_rule()
 
 
 def render_sidebar() -> None:
@@ -33,33 +37,33 @@ def render_sidebar() -> None:
 
     with st.sidebar:
         if fase in ANALYSIS_PHASES:
-            st.header(eu.SIDEBAR["title_analysis"])
-            st.subheader(eu.SIDEBAR["nominal_title"])
+            st.markdown(f"### {eu.SIDEBAR['title_analysis']}")
+            st.markdown(f"**{eu.SIDEBAR['nominal_title']}**")
             st.metric(eu.SIDEBAR["rpm"], f"{st.session_state.rpm:.0f}")
             st.metric(eu.SIDEBAR["wind_speed"], f"{st.session_state.v_rated:.1f}")
 
-            st.divider()
+            section_divider()
             st.metric(eu.SIDEBAR["iteration"], st.session_state.iterazioa)
             st.metric(
                 eu.SIDEBAR["station"],
                 f"{st.session_state.uneko_estazioa + 1} / {st.session_state.puntu_kopurua}",
             )
 
-            st.divider()
+            section_divider()
             st.markdown(f"**{eu.SIDEBAR['selected_profiles']}**")
             if st.session_state.amaierako_nacak:
                 for i, naca in enumerate(st.session_state.amaierako_nacak, start=1):
-                    st.caption(f"{i}. NACA {naca}")
+                    st.markdown(f"{i}. NACA {naca}")
             else:
-                st.caption(eu.SIDEBAR["no_profiles_yet"])
+                st.markdown(f"*{eu.SIDEBAR['no_profiles_yet']}*")
 
-            st.divider()
+            section_divider()
             if not st.session_state.confirm_reset_config:
                 if st.button(eu.SIDEBAR["back_to_config"], use_container_width=True):
                     st.session_state.confirm_reset_config = True
                     st.rerun()
             else:
-                st.warning(eu.SIDEBAR["back_to_config_warning"])
+                academic_warning(eu.SIDEBAR["back_to_config_warning"])
                 col_yes, col_no = st.columns(2)
                 if col_yes.button(eu.SIDEBAR["confirm_reset"], use_container_width=True):
                     reset_to_konfig()
@@ -68,12 +72,12 @@ def render_sidebar() -> None:
                     st.rerun()
 
         elif fase == "LABURPENA":
-            st.header(eu.SIDEBAR["title_summary"])
+            st.markdown(f"### {eu.SIDEBAR['title_summary']}")
             st.metric(eu.SIDEBAR["iteration"], st.session_state.iterazioa)
             st.metric(eu.SIDEBAR["station"], st.session_state.puntu_kopurua)
             st.metric(eu.SIDEBAR["rpm"], f"{st.session_state.rpm:.0f}")
             st.metric(eu.SIDEBAR["wind_speed"], f"{st.session_state.v_rated:.1f}")
-            st.divider()
+            section_divider()
             if st.button(eu.SIDEBAR["back_to_home"], use_container_width=True):
                 go_to_hasiera()
 
@@ -98,3 +102,5 @@ def render_station_banner() -> None:
     col3.metric(eu.METRICS["chord"], f"{c_unekoa:.3f} m")
     col4.metric(eu.METRICS["reynolds"], f"{metrics['reynolds']:.2e}")
     col5.metric(eu.METRICS["tsr"], f"{metrics['lambda']:.2f}")
+
+    section_divider()

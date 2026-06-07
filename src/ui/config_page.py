@@ -10,6 +10,7 @@ from src.i18n import eu
 from src.physics import calc_lambda, calc_reynolds_array
 from src.plots import build_blade_planform_figure, build_reynolds_figure, build_tsr_figure
 from src.state import fasea_aldatu, go_to_hasiera, reset_iteration_state, update_geometry_from_params
+from src.ui.theme import academic_note, section_divider
 
 
 def _handle_nominal_change() -> None:
@@ -17,83 +18,81 @@ def _handle_nominal_change() -> None:
 
 
 def render_config_page() -> None:
-    st.markdown(eu.PHASES["KONFIG"]["description"])
+    academic_note(eu.PHASES["KONFIG"]["description"])
+
+    st.markdown(f"### {eu.CONFIG['nominal_title']}")
+    st.markdown(f"*{eu.CONFIG['nominal_help']}*")
 
     col_nom, col_geom, col_sec = st.columns(3)
 
     with col_nom:
-        st.subheader(eu.CONFIG["nominal_title"])
-        st.caption(eu.CONFIG["nominal_help"])
-        with st.container(border=True):
-            rpm_berria = st.number_input(
-                eu.CONFIG["rpm"],
-                min_value=1.0,
-                value=float(st.session_state.rpm),
-                step=1.0,
-            )
-            v_rated_berria = st.number_input(
-                eu.CONFIG["wind_speed"],
-                min_value=0.1,
-                value=float(st.session_state.v_rated),
-                step=0.1,
-            )
+        rpm_berria = st.number_input(
+            eu.CONFIG["rpm"],
+            min_value=1.0,
+            value=float(st.session_state.rpm),
+            step=1.0,
+        )
+        v_rated_berria = st.number_input(
+            eu.CONFIG["wind_speed"],
+            min_value=0.1,
+            value=float(st.session_state.v_rated),
+            step=0.1,
+        )
 
-            if rpm_berria != st.session_state.rpm or v_rated_berria != st.session_state.v_rated:
-                st.session_state.rpm = rpm_berria
-                st.session_state.v_rated = v_rated_berria
-                _handle_nominal_change()
-                st.rerun()
+        if rpm_berria != st.session_state.rpm or v_rated_berria != st.session_state.v_rated:
+            st.session_state.rpm = rpm_berria
+            st.session_state.v_rated = v_rated_berria
+            _handle_nominal_change()
+            st.rerun()
 
     with col_geom:
-        st.subheader(eu.CONFIG["geometry_title"])
-        with st.container(border=True):
-            erradio_min_berria = st.number_input(
-                eu.CONFIG["hub_radius"],
-                min_value=0.01,
-                value=float(st.session_state.erradio_min),
-                step=0.01,
-            )
-            erradio_max_berria = st.number_input(
-                eu.CONFIG["max_radius"],
-                min_value=0.05,
-                value=float(st.session_state.erradio_max),
-                step=0.01,
-            )
-            korda_base_berria = st.number_input(
-                eu.CONFIG["base_chord"],
-                min_value=0.01,
-                value=float(st.session_state.korda_base),
-                step=0.01,
-            )
+        st.markdown(f"**{eu.CONFIG['geometry_title']}**")
+        erradio_min_berria = st.number_input(
+            eu.CONFIG["hub_radius"],
+            min_value=0.01,
+            value=float(st.session_state.erradio_min),
+            step=0.01,
+        )
+        erradio_max_berria = st.number_input(
+            eu.CONFIG["max_radius"],
+            min_value=0.05,
+            value=float(st.session_state.erradio_max),
+            step=0.01,
+        )
+        korda_base_berria = st.number_input(
+            eu.CONFIG["base_chord"],
+            min_value=0.01,
+            value=float(st.session_state.korda_base),
+            step=0.01,
+        )
 
-            geom_changed = (
-                erradio_min_berria != st.session_state.erradio_min
-                or erradio_max_berria != st.session_state.erradio_max
-                or korda_base_berria != st.session_state.korda_base
-            )
-            if geom_changed:
-                st.session_state.erradio_min = erradio_min_berria
-                st.session_state.erradio_max = erradio_max_berria
-                st.session_state.korda_base = korda_base_berria
-                update_geometry_from_params()
-                _handle_nominal_change()
-                st.rerun()
+        geom_changed = (
+            erradio_min_berria != st.session_state.erradio_min
+            or erradio_max_berria != st.session_state.erradio_max
+            or korda_base_berria != st.session_state.korda_base
+        )
+        if geom_changed:
+            st.session_state.erradio_min = erradio_min_berria
+            st.session_state.erradio_max = erradio_max_berria
+            st.session_state.korda_base = korda_base_berria
+            update_geometry_from_params()
+            _handle_nominal_change()
+            st.rerun()
 
     with col_sec:
-        st.subheader(eu.CONFIG["sections_title"])
-        with st.container(border=True):
-            sekzio_berriak = st.number_input(
-                eu.CONFIG["station_count"],
-                min_value=2,
-                max_value=30,
-                value=int(st.session_state.puntu_kopurua),
-                step=1,
-            )
-            if sekzio_berriak != st.session_state.puntu_kopurua:
-                st.session_state.puntu_kopurua = sekzio_berriak
-                update_geometry_from_params()
-                _handle_nominal_change()
-                st.rerun()
+        st.markdown(f"**{eu.CONFIG['sections_title']}**")
+        sekzio_berriak = st.number_input(
+            eu.CONFIG["station_count"],
+            min_value=2,
+            max_value=30,
+            value=int(st.session_state.puntu_kopurua),
+            step=1,
+        )
+        if sekzio_berriak != st.session_state.puntu_kopurua:
+            st.session_state.puntu_kopurua = sekzio_berriak
+            update_geometry_from_params()
+            _handle_nominal_change()
+            st.rerun()
 
     with st.expander(eu.CONFIG["aero_expander"]):
         alpha_min = st.number_input(
@@ -124,6 +123,8 @@ def render_config_page() -> None:
             st.session_state.alpha_steps = alpha_steps
             _handle_nominal_change()
             st.rerun()
+
+    section_divider()
 
     reynolds_array = calc_reynolds_array(
         st.session_state.erradioak,
@@ -172,7 +173,7 @@ def render_config_page() -> None:
             key="config_tsr",
         )
 
-    st.subheader(eu.CONFIG["chords_title"])
+    st.markdown(f"### {eu.CONFIG['chords_title']}")
     df_kordak = pd.DataFrame(
         {
             eu.CONFIG["col_station"]: estazioak,
@@ -198,11 +199,12 @@ def render_config_page() -> None:
     )
     st.session_state.kordak = df_editatua[eu.CONFIG["col_chord"]].values
 
+    section_divider()
     col_back, col_btn, col_spacer = st.columns([1, 2, 1])
     with col_back:
         if st.button(eu.CONFIG["back_to_landing"], use_container_width=True):
             go_to_hasiera()
     with col_btn:
-        if st.button(eu.CONFIG["start_analysis"], type="primary", use_container_width=True):
+        if st.button(eu.CONFIG["start_analysis"], use_container_width=True):
             reset_iteration_state()
             fasea_aldatu("1_URRATSA")

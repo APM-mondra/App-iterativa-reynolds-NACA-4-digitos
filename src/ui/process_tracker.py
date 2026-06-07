@@ -1,10 +1,11 @@
-"""Prozesuaren jarraipen bisuala: makro-faseak eta mikro-urratsak."""
+"""Prozesuaren jarraipen bisuala — estilo tipografiko sobrio."""
 
 from __future__ import annotations
 
 import streamlit as st
 
 from src.i18n import eu
+from src.ui.theme import ROMAN_NUMERALS, academic_note, section_divider
 
 
 ANALYSIS_PHASES = {"1_URRATSA", "2_URRATSA", "3_URRATSA"}
@@ -20,36 +21,39 @@ def _macro_phase_index(fase: str) -> int:
     return 3
 
 
+def _phase_html(label: str, roman: str, status: str) -> str:
+    if status == "active":
+        return f'<span class="phase-active">[{roman}] {label}</span>'
+    if status == "completed":
+        return f'<span class="phase-completed">[{roman}] {label}</span>'
+    return f'<span class="phase-pending">[{roman}] {label}</span>'
+
+
 def render_macro_tracker(fase: str) -> None:
     current_idx = _macro_phase_index(fase)
-    cols = st.columns(len(eu.MACRO_PHASES))
-
+    parts = []
     for i, phase in enumerate(eu.MACRO_PHASES):
-        label = phase["label"]
-        with cols[i]:
-            if i < current_idx:
-                st.success(f"✓ {label}")
-            elif i == current_idx:
-                with st.container(border=True):
-                    st.markdown(f"**▶ {label}**")
-            else:
-                st.caption(f"○ {label}")
+        if i < current_idx:
+            status = "completed"
+        elif i == current_idx:
+            status = "active"
+        else:
+            status = "pending"
+        parts.append(_phase_html(phase["label"], ROMAN_NUMERALS[i], status))
+
+    st.markdown(" &nbsp;&nbsp;|&nbsp;&nbsp; ".join(parts), unsafe_allow_html=True)
 
     phase_info = eu.PHASES.get(fase)
     if phase_info and fase != "HASIERA":
-        st.info(phase_info["description"])
+        academic_note(phase_info["description"])
 
 
-def _render_station_dots(total: int, current: int, completed: int) -> None:
-    dots = []
-    for i in range(total):
-        if i < completed:
-            dots.append("🟢")
-        elif i == current:
-            dots.append("🔵")
-        else:
-            dots.append("⚪")
-    st.markdown(f"**{eu.TRACKER['station_map_title']}:** {' '.join(dots)}")
+def _station_marker(i: int, current: int, completed: int) -> str:
+    if i < completed:
+        return '<span class="tracker-station-done">●</span>'
+    if i == current:
+        return '<span class="tracker-station-active">◉</span>'
+    return '<span class="tracker-station-pending">○</span>'
 
 
 def render_micro_tracker(fase: str) -> None:
@@ -66,22 +70,29 @@ def render_micro_tracker(fase: str) -> None:
     st.caption(
         eu.TRACKER["station_label"].format(current=current_station + 1, total=total)
     )
-    _render_station_dots(total, current_station, completed_stations)
+
+    markers = " ".join(
+        _station_marker(i, current_station, completed_stations) for i in range(total)
+    )
+    st.markdown(
+        f"**{eu.TRACKER['station_map_title']}:** {markers}",
+        unsafe_allow_html=True,
+    )
 
     st.markdown(f"**{eu.TRACKER['substep_label']}**")
-    sub_cols = st.columns(len(eu.MICRO_STEPS))
+    sub_parts = []
     for i, step in enumerate(eu.MICRO_STEPS):
-        with sub_cols[i]:
-            if step["id"] == fase:
-                st.markdown(f"**▶ {step['label']}**")
-            elif (fase == "2_URRATSA" and step["id"] == "1_URRATSA") or (
-                fase == "3_URRATSA" and step["id"] in {"1_URRATSA", "2_URRATSA"}
-            ):
-                st.success(f"✓ {step['label']}")
-            else:
-                st.caption(f"○ {step['label']}")
+        if step["id"] == fase:
+            sub_parts.append(f'<span class="phase-active">{step["label"]}</span>')
+        elif (fase == "2_URRATSA" and step["id"] == "1_URRATSA") or (
+            fase == "3_URRATSA" and step["id"] in {"1_URRATSA", "2_URRATSA"}
+        ):
+            sub_parts.append(f'<span class="phase-completed">{step["label"]}</span>')
+        else:
+            sub_parts.append(f'<span class="phase-pending">{step["label"]}</span>')
 
-    st.divider()
+    st.markdown(" · ".join(sub_parts), unsafe_allow_html=True)
+    section_divider()
 
 
 def render_process_tracker(fase: str) -> None:

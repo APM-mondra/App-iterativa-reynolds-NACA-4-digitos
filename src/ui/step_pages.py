@@ -18,11 +18,12 @@ from src.plots import (
     build_ranking_figure,
 )
 from src.state import estazioa_atzera, fasea_aldatu
+from src.ui.theme import academic_warning, section_divider
 
 
 def _render_ranking_table(results: list[dict]) -> None:
     if not results:
-        st.warning(eu.STEPS["no_valid_profiles"])
+        academic_warning(eu.STEPS["no_valid_profiles"])
         return
 
     df = pd.DataFrame(
@@ -169,8 +170,8 @@ def _render_step_results(
                 key=f"{key_prefix}_geom",
             )
 
-    with st.container(border=True):
-        aukera = _render_profile_selector(validos, key_prefix, zutabe_kop)
+    section_divider()
+    aukera = _render_profile_selector(validos, key_prefix, zutabe_kop)
 
     if st.button(back_label, use_container_width=False):
         back_callback()
@@ -197,13 +198,13 @@ def render_step1_page() -> None:
 
 def render_step2_page() -> None:
     if st.session_state.m_hautatua == "0":
-        st.warning(eu.STEPS["symmetric_warning"])
+        academic_warning(eu.STEPS["symmetric_warning"])
         st.session_state.p_hautatua = "0"
 
         col_atzera, col_huts, col_aurrera = st.columns([1, 4, 1])
         if col_atzera.button(eu.STEPS["btn_previous"], use_container_width=True):
             fasea_aldatu("1_URRATSA")
-        if col_aurrera.button(eu.STEPS["btn_to_thickness"], type="primary", use_container_width=True):
+        if col_aurrera.button(eu.STEPS["btn_to_thickness"], use_container_width=True):
             fasea_aldatu("3_URRATSA")
         return
 
