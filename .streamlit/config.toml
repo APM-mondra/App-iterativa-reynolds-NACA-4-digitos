@@ -1,0 +1,12 @@
+[theme]
+primaryColor = "#1F618D"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F4F8"
+textColor = "#2C3E50"
+font = "sans serif"
+
+[runner]
+fastReruns = true
+
+[server]
+headless = true
