@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import html
+
 import streamlit as st
 
 FONT_SERIF = "'STIX Two Text', 'Times New Roman', Times, serif"
@@ -283,16 +285,26 @@ def header_rule() -> None:
     st.markdown('<hr class="scientific-header-rule">', unsafe_allow_html=True)
 
 
+def _escape(text: str) -> str:
+    return html.escape(text, quote=True)
+
+
 def academic_note(text: str) -> None:
-    st.markdown(f'<div class="academic-note">{text}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="academic-note">{_escape(text)}</div>', unsafe_allow_html=True)
 
 
 def academic_warning(text: str) -> None:
-    st.markdown(f'<div class="academic-warning"><em>Oharra:</em> {text}</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="academic-warning"><em>Oharra:</em> {_escape(text)}</div>',
+        unsafe_allow_html=True,
+    )
 
 
 def academic_result(text: str) -> None:
-    st.markdown(f'<div class="academic-result"><em>Emaitza:</em> {text}</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="academic-result"><em>Emaitza:</em> {_escape(text)}</div>',
+        unsafe_allow_html=True,
+    )
 
 
 def get_plotly_layout_defaults() -> dict:
@@ -306,14 +318,16 @@ def get_plotly_layout_defaults() -> dict:
 
 
 def apply_scientific_axes(fig) -> None:
+    axis_font = dict(family=FONT_SERIF, size=11, color=COLOR_TEXT)
+    title_font = dict(family=FONT_SERIF, size=PLOT_FONT_SIZE, color=COLOR_TEXT)
     axis_style = dict(
         showline=True,
         linewidth=1,
         linecolor=COLOR_BORDER,
         mirror=True,
         ticks="inside",
-        tickfont=dict(family=FONT_SERIF, size=11, color=COLOR_TEXT),
-        titlefont=dict(family=FONT_SERIF, size=PLOT_FONT_SIZE, color=COLOR_TEXT),
+        tickfont=axis_font,
+        title=dict(font=title_font),
         showgrid=True,
         gridwidth=0.5,
         gridcolor=COLOR_GRID,

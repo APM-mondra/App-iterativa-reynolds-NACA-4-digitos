@@ -3,14 +3,14 @@
 import streamlit as st
 
 from src.i18n import eu
-from src.state import init_session_state
+from src.state import go_to_hasiera, init_session_state
 from src.ui.config_page import render_config_page
 from src.ui.landing_page import render_landing_page
 from src.ui.layout import render_header, render_sidebar, render_station_banner
 from src.ui.process_tracker import render_process_tracker
 from src.ui.step_pages import render_step1_page, render_step2_page, render_step3_page
 from src.ui.summary_page import render_summary_page
-from src.ui.theme import inject_global_styles
+from src.ui.theme import academic_warning, inject_global_styles
 
 st.set_page_config(
     page_title=eu.APP_TITLE,
@@ -39,3 +39,7 @@ elif fase == "3_URRATSA":
     render_step3_page()
 elif fase == "LABURPENA":
     render_summary_page()
+else:
+    academic_warning(eu.ERRORS["unknown_phase"])
+    if st.button(eu.SIDEBAR["back_to_home"]):
+        go_to_hasiera()

@@ -18,7 +18,7 @@ def get_aero_cached(
     alpha_max: float,
     alpha_steps: int,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray] | None:
-    if not is_valid_naca_digit_pair(naca):
+    if not is_valid_naca_digit_pair(naca) or reynolds <= 0:
         return None
 
     try:
@@ -26,8 +26,12 @@ def get_aero_cached(
         aero = nf.get_aero_from_airfoil(
             asb.Airfoil(f"naca{naca}"), alphas, reynolds
         )
-        return alphas, np.asarray(aero["CL"]), np.asarray(aero["CD"])
-    except Exception:
+        cl = np.asarray(aero["CL"], dtype=float)
+        cd = np.asarray(aero["CD"], dtype=float)
+        if not np.any(np.isfinite(cl)) or not np.any(np.isfinite(cd)):
+            return None
+        return alphas, cl, cd
+    except (ValueError, KeyError, RuntimeError, TypeError):
         return None
 
 
@@ -38,6 +42,9 @@ def evaluate_naca_list(
     alpha_max: float,
     alpha_steps: int,
 ) -> list[dict]:
+    if reynolds <= 0 or alpha_min >= alpha_max:
+        return []
+
     results: list[dict] = []
 
     for naca in naca_list:
@@ -48,7 +55,7 @@ def evaluate_naca_list(
         alphas, cl, cd = cached
         cl_cds = np.divide(cl, cd, out=np.zeros_like(cl), where=(cd > 0))
 
-        if np.max(cl_cds) <= 0:
+        if not np.any(cl_cds > 0):
             continue
 
         best_idx = int(np.argmax(cl_cds))
@@ -71,7 +78,7 @@ def evaluate_naca_list(
 
 
 def get_phase_cache_key(estazioa: int, fase: str, reynolds: float) -> str:
-    return f"{estazioa}_{fase}_{round(reynolds, 0)}"
+    return f"{estazioa}_{fase}_{int(round(reynolds))}"
 
 
 def get_or_compute_phase_results(

@@ -17,13 +17,13 @@ from src.plots import (
     build_polar_figure,
     build_ranking_figure,
 )
-from src.state import estazioa_atzera, fasea_aldatu
+from src.state import estazioa_atzera, fasea_aldatu, get_safe_station_index
 from src.ui.theme import academic_warning, section_divider
 
 
 def _render_ranking_table(results: list[dict]) -> None:
     if not results:
-        academic_warning(eu.STEPS["no_valid_profiles"])
+        academic_warning(eu.ERRORS["no_valid_profiles"])
         return
 
     df = pd.DataFrame(
@@ -46,6 +46,9 @@ def _render_profile_selector(
     key_prefix: str,
     zutabe_kop: int = 4,
 ) -> str | None:
+    if not validos:
+        return None
+
     st.markdown(f"**{eu.STEPS['select_prompt']}**")
 
     cols = st.columns(zutabe_kop)
@@ -58,14 +61,15 @@ def _render_profile_selector(
         ):
             aukeratua = aukera
 
-    selectbox_choice = st.selectbox(
-        eu.STEPS["select_profile"],
-        options=["--"] + validos,
-        format_func=lambda x: f"NACA {x}" if x != "--" else eu.STEPS["select_placeholder"],
-        key=f"{key_prefix}_select",
-    )
-    if selectbox_choice != "--":
-        aukeratua = selectbox_choice
+    if aukeratua is None:
+        selectbox_choice = st.selectbox(
+            eu.STEPS["select_profile"],
+            options=["--"] + validos,
+            format_func=lambda x: f"NACA {x}" if x != "--" else eu.STEPS["select_placeholder"],
+            key=f"{key_prefix}_select",
+        )
+        if selectbox_choice != "--":
+            aukeratua = selectbox_choice
 
     return aukeratua
 
@@ -80,7 +84,7 @@ def _render_step_results(
     on_select,
     zutabe_kop: int = 4,
 ) -> None:
-    idx = st.session_state.uneko_estazioa
+    idx = get_safe_station_index()
     re = calc_reynolds(
         st.session_state.erradioak[idx],
         st.session_state.kordak[idx],
@@ -101,9 +105,15 @@ def _render_step_results(
     validos = [item["naca"] for item in results]
 
     preview_naca = st.session_state.selected_preview_naca
-    if preview_naca not in validos and validos:
-        preview_naca = validos[0]
+    if preview_naca not in validos:
+        preview_naca = validos[0] if validos else None
         st.session_state.selected_preview_naca = preview_naca
+
+    if not validos:
+        academic_warning(eu.ERRORS["no_valid_profiles"])
+        if st.button(back_label, use_container_width=False):
+            back_callback()
+        return
 
     col_main, col_side = st.columns([3, 1])
 
@@ -155,11 +165,11 @@ def _render_step_results(
             _render_ranking_table(results)
 
     with col_side:
-        if validos:
+        if preview_naca:
             preview_choice = st.selectbox(
                 eu.STEPS["preview"],
                 options=validos,
-                index=validos.index(preview_naca) if preview_naca in validos else 0,
+                index=validos.index(preview_naca),
                 format_func=lambda x: f"NACA {x}",
                 key=f"{key_prefix}_preview",
             )
@@ -230,6 +240,8 @@ def render_step3_page() -> None:
         if st.session_state.uneko_estazioa < st.session_state.puntu_kopurua - 1:
             st.session_state.uneko_estazioa += 1
             st.session_state.selected_preview_naca = None
+            st.session_state.m_hautatua = "0"
+            st.session_state.p_hautatua = "0"
             fasea_aldatu("1_URRATSA")
         else:
             fasea_aldatu("LABURPENA")

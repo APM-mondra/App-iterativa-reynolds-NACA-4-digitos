@@ -6,7 +6,7 @@ import streamlit as st
 
 from src.i18n import eu
 from src.physics import calc_station_metrics
-from src.state import go_to_hasiera, reset_to_konfig
+from src.state import get_safe_station_index, go_to_hasiera, reset_to_konfig
 from src.ui.theme import academic_warning, header_rule, section_divider
 
 
@@ -74,7 +74,7 @@ def render_sidebar() -> None:
         elif fase == "LABURPENA":
             st.markdown(f"### {eu.SIDEBAR['title_summary']}")
             st.metric(eu.SIDEBAR["iteration"], st.session_state.iterazioa)
-            st.metric(eu.SIDEBAR["station"], st.session_state.puntu_kopurua)
+            st.metric(eu.SIDEBAR_SUMMARY["station_count"], st.session_state.puntu_kopurua)
             st.metric(eu.SIDEBAR["rpm"], f"{st.session_state.rpm:.0f}")
             st.metric(eu.SIDEBAR["wind_speed"], f"{st.session_state.v_rated:.1f}")
             section_divider()
@@ -86,7 +86,7 @@ def render_station_banner() -> None:
     if st.session_state.fase not in ANALYSIS_PHASES:
         return
 
-    idx = st.session_state.uneko_estazioa
+    idx = get_safe_station_index()
     r_unekoa = st.session_state.erradioak[idx]
     c_unekoa = st.session_state.kordak[idx]
     metrics = calc_station_metrics(

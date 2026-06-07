@@ -14,11 +14,12 @@ from src.plots import (
     build_spanwise_naca_figure,
     build_summary_dual_axis_figure,
 )
-from src.state import fasea_aldatu
-from src.ui.theme import academic_note, academic_result, section_divider
+from src.state import fasea_aldatu, reset_iteration_state, sync_geometry_arrays
+from src.ui.theme import academic_note, academic_result, academic_warning, section_divider
 
 
 def render_summary_page() -> None:
+    sync_geometry_arrays()
     academic_result(eu.SUMMARY["success"].format(n=st.session_state.iterazioa))
     academic_note(eu.PHASES["LABURPENA"]["description"])
 
@@ -29,6 +30,16 @@ def render_summary_page() -> None:
         st.session_state.v_rated,
     )
     estazioak = list(range(1, st.session_state.puntu_kopurua + 1))
+    nacak = list(st.session_state.amaierako_nacak)
+
+    if len(nacak) != st.session_state.puntu_kopurua:
+        academic_warning(
+            f"Profil kopurua ({len(nacak)}) eta estazio kopurua "
+            f"({st.session_state.puntu_kopurua}) ez datoz bat."
+        )
+        while len(nacak) < st.session_state.puntu_kopurua:
+            nacak.append("—")
+        nacak = nacak[: st.session_state.puntu_kopurua]
 
     df_emaitzak = pd.DataFrame(
         {
@@ -36,7 +47,7 @@ def render_summary_page() -> None:
             eu.CONFIG["col_radius"]: np.round(st.session_state.erradioak, 3),
             eu.SUMMARY["col_used_chord"]: np.round(st.session_state.kordak, 3),
             eu.CONFIG["col_reynolds"]: [f"{re:.2e}" for re in reynolds_amaiera],
-            eu.SUMMARY["col_selected_naca"]: st.session_state.amaierako_nacak,
+            eu.SUMMARY["col_selected_naca"]: nacak,
         }
     )
 
@@ -92,9 +103,14 @@ def render_summary_page() -> None:
         cols = st.columns(min(len(naca_bakarrak), 4))
         for i, naca in enumerate(naca_bakarrak):
             with cols[i % len(cols)]:
+                try:
+                    txt_data = sortu_naca_txt(naca)
+                except (ValueError, Exception):
+                    academic_warning(f"{eu.ERRORS['naca_download_failed']} NACA {naca}")
+                    continue
                 st.download_button(
                     label=f"NACA {naca}.txt",
-                    data=sortu_naca_txt(naca),
+                    data=txt_data,
                     file_name=f"NACA_{naca}.txt",
                     mime="text/plain",
                     use_container_width=True,
@@ -121,6 +137,5 @@ def render_summary_page() -> None:
         if st.button(eu.SUMMARY["start_new_iteration"], use_container_width=True):
             st.session_state.kordak = df_berriak[eu.SUMMARY["col_new_chord"]].values
             st.session_state.iterazioa += 1
-            st.session_state.aero_cache = {}
-            st.session_state.selected_preview_naca = None
+            reset_iteration_state()
             fasea_aldatu("KONFIG")

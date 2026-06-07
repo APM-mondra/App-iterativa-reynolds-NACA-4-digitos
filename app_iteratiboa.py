@@ -70,7 +70,7 @@ def grafikoak_sortu(reynolds, naca_zerrenda, izenburua):
                 fig_eff.add_trace(go.Scatter(x=alphas, y=cl_cds, mode='lines', name=f"NACA {naca}", line=dict(width=3)))
                 fig_cl.add_trace(go.Scatter(x=alphas, y=cl, mode='lines', name=f"NACA {naca}", line=dict(width=3)))
                 naca_baliodunak.append(naca)
-        except:
+        except (ValueError, KeyError, RuntimeError, TypeError):
             continue
             
     diseinu_komuna = dict(
@@ -101,9 +101,16 @@ def fasea_aldatu(fase_berria):
 def estazioa_atzera():
     if st.session_state.uneko_estazioa > 0:
         st.session_state.uneko_estazioa -= 1
-        st.session_state.amaierako_nacak.pop() 
-        fasea_aldatu("3_URRATSA")
+        if st.session_state.amaierako_nacak:
+            st.session_state.amaierako_nacak.pop()
+        st.session_state.m_hautatua = "0"
+        st.session_state.p_hautatua = "0"
+        fasea_aldatu("1_URRATSA")
     else:
+        st.session_state.amaierako_nacak = []
+        st.session_state.uneko_estazioa = 0
+        st.session_state.m_hautatua = "0"
+        st.session_state.p_hautatua = "0"
         fasea_aldatu("KONFIG")
 
 def marraztu_botoi_sarea(aukerak, gakoa, zutabe_kop=4):
@@ -361,4 +368,8 @@ elif st.session_state.fase == "LABURPENA":
         if st.button("🚀 Iterazio Berria Hasi", type="primary", use_container_width=True):
             st.session_state.kordak = df_berriak["Korda Berria [m]"].values
             st.session_state.iterazioa += 1
+            st.session_state.amaierako_nacak = []
+            st.session_state.uneko_estazioa = 0
+            st.session_state.m_hautatua = "0"
+            st.session_state.p_hautatua = "0"
             fasea_aldatu("KONFIG")

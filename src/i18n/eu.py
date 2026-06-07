@@ -230,6 +230,20 @@ TRACKER = {
     "pending": "Zain",
 }
 
+ERRORS = {
+    "unknown_phase": "Egoera ezezaguna. Itzuli hasierara.",
+    "no_valid_profiles": "Ez da profil baliodunik aurkitu uneko parametroekin.",
+    "invalid_geometry": "Geometria baliogabea: hasierako erradioa gehienezko erradiotik txikiagoa izan behar da.",
+    "invalid_alpha": "Eraso-angeluen tartea baliogabea: gutxienekoa gehienezkoa baino txikiagoa izan behar da.",
+    "invalid_chord": "Korda positiboa izan behar da estazio guztietan.",
+    "naca_download_failed": "Ezin izan da profila deskargatu:",
+    "geometry_unavailable": "Geometria ez dago eskuragarri profil honetarako.",
+}
+
+SIDEBAR_SUMMARY = {
+    "station_count": "Estazio kopurua",
+}
+
 METRICS = {
     "station": "Estazioa",
     "radius": "Erradioa",

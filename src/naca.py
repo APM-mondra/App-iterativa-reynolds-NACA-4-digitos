@@ -18,11 +18,16 @@ def nacas_fase3(m_hautatua: str, p_hautatua: str) -> list[str]:
 
 
 def is_valid_naca_digit_pair(naca: str) -> bool:
+    if len(naca) < 2 or not naca[:2].isdigit():
+        return False
     m, p = int(naca[0]), int(naca[1])
     return not ((m > 0 and p == 0) or (m == 0 and p > 0))
 
 
 def sortu_naca_txt(naca: str) -> str:
+    if len(naca) < 4 or not naca.isdigit():
+        raise ValueError(f"NACA kode baliogabea: {naca}")
+
     m = int(naca[0]) * 1.0
     p = int(naca[1]) * 10.0
     t = int(naca[2:]) * 1.0
@@ -38,8 +43,14 @@ def sortu_naca_txt(naca: str) -> str:
     return "\n".join(lerroak)
 
 
-def get_airfoil_coordinates(naca: str) -> tuple[list[float], list[float]]:
-    perfila = asb.Airfoil(f"naca{naca}")
-    xs = [coord[0] for coord in perfila.coordinates]
-    ys = [coord[1] for coord in perfila.coordinates]
-    return xs, ys
+def get_airfoil_coordinates(naca: str) -> tuple[list[float], list[float]] | None:
+    if len(naca) < 4 or not naca.isdigit():
+        return None
+
+    try:
+        perfila = asb.Airfoil(f"naca{naca}")
+        xs = [coord[0] for coord in perfila.coordinates]
+        ys = [coord[1] for coord in perfila.coordinates]
+        return xs, ys
+    except Exception:
+        return None

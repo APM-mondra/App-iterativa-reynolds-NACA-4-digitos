@@ -32,15 +32,33 @@ def init_session_state() -> None:
         if key not in st.session_state:
             st.session_state[key] = value
 
-    if "kordak" not in st.session_state:
-        st.session_state.kordak = np.full(st.session_state.puntu_kopurua, st.session_state.korda_base)
+    sync_geometry_arrays()
 
-    if "erradioak" not in st.session_state:
+
+def sync_geometry_arrays() -> None:
+    """Mantener kordak/erradioak sincronizados con puntu_kopurua."""
+    n = st.session_state.puntu_kopurua
+    if (
+        "kordak" not in st.session_state
+        or len(st.session_state.kordak) != n
+    ):
+        st.session_state.kordak = np.full(n, st.session_state.korda_base)
+    if (
+        "erradioak" not in st.session_state
+        or len(st.session_state.erradioak) != n
+    ):
         st.session_state.erradioak = np.linspace(
             st.session_state.erradio_min,
             st.session_state.erradio_max,
-            st.session_state.puntu_kopurua,
+            n,
         )
+
+
+def get_safe_station_index() -> int:
+    """Indice de estacion acotado al rango valido."""
+    sync_geometry_arrays()
+    max_idx = max(0, min(st.session_state.puntu_kopurua, len(st.session_state.erradioak)) - 1)
+    return int(np.clip(st.session_state.uneko_estazioa, 0, max_idx))
 
 
 def fasea_aldatu(fase_berria: str) -> None:
@@ -50,6 +68,7 @@ def fasea_aldatu(fase_berria: str) -> None:
 
 
 def go_to_hasiera() -> None:
+    reset_iteration_state()
     st.session_state.fase = "HASIERA"
     st.session_state.confirm_reset_config = False
     st.rerun()
@@ -58,9 +77,14 @@ def go_to_hasiera() -> None:
 def estazioa_atzera() -> None:
     if st.session_state.uneko_estazioa > 0:
         st.session_state.uneko_estazioa -= 1
-        st.session_state.amaierako_nacak.pop()
-        fasea_aldatu("3_URRATSA")
+        if st.session_state.amaierako_nacak:
+            st.session_state.amaierako_nacak.pop()
+        st.session_state.selected_preview_naca = None
+        st.session_state.m_hautatua = "0"
+        st.session_state.p_hautatua = "0"
+        fasea_aldatu("1_URRATSA")
     else:
+        reset_iteration_state()
         fasea_aldatu("KONFIG")
 
 
@@ -78,6 +102,8 @@ def reset_iteration_state() -> None:
     st.session_state.uneko_estazioa = 0
     st.session_state.aero_cache = {}
     st.session_state.selected_preview_naca = None
+    st.session_state.m_hautatua = "0"
+    st.session_state.p_hautatua = "0"
 
 
 def reset_to_konfig() -> None:
@@ -85,5 +111,5 @@ def reset_to_konfig() -> None:
     fasea_aldatu("KONFIG")
 
 
-def clear_aero_cache() -> None:
+def invalidate_aero_cache() -> None:
     st.session_state.aero_cache = {}

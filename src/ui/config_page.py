@@ -9,15 +9,19 @@ import streamlit as st
 from src.i18n import eu
 from src.physics import calc_lambda, calc_reynolds_array
 from src.plots import build_blade_planform_figure, build_reynolds_figure, build_tsr_figure
-from src.state import fasea_aldatu, go_to_hasiera, reset_iteration_state, update_geometry_from_params
-from src.ui.theme import academic_note, section_divider
-
-
-def _handle_nominal_change() -> None:
-    st.session_state.aero_cache = {}
+from src.state import (
+    fasea_aldatu,
+    go_to_hasiera,
+    invalidate_aero_cache,
+    reset_iteration_state,
+    sync_geometry_arrays,
+    update_geometry_from_params,
+)
+from src.ui.theme import academic_note, academic_warning, section_divider
 
 
 def render_config_page() -> None:
+    sync_geometry_arrays()
     academic_note(eu.PHASES["KONFIG"]["description"])
 
     st.markdown(f"### {eu.CONFIG['nominal_title']}")
@@ -42,7 +46,7 @@ def render_config_page() -> None:
         if rpm_berria != st.session_state.rpm or v_rated_berria != st.session_state.v_rated:
             st.session_state.rpm = rpm_berria
             st.session_state.v_rated = v_rated_berria
-            _handle_nominal_change()
+            invalidate_aero_cache()
             st.rerun()
 
     with col_geom:
@@ -55,7 +59,7 @@ def render_config_page() -> None:
         )
         erradio_max_berria = st.number_input(
             eu.CONFIG["max_radius"],
-            min_value=0.05,
+            min_value=erradio_min_berria + 0.01,
             value=float(st.session_state.erradio_max),
             step=0.01,
         )
@@ -72,12 +76,15 @@ def render_config_page() -> None:
             or korda_base_berria != st.session_state.korda_base
         )
         if geom_changed:
-            st.session_state.erradio_min = erradio_min_berria
-            st.session_state.erradio_max = erradio_max_berria
-            st.session_state.korda_base = korda_base_berria
-            update_geometry_from_params()
-            _handle_nominal_change()
-            st.rerun()
+            if erradio_min_berria >= erradio_max_berria:
+                academic_warning(eu.ERRORS["invalid_geometry"])
+            else:
+                st.session_state.erradio_min = erradio_min_berria
+                st.session_state.erradio_max = erradio_max_berria
+                st.session_state.korda_base = korda_base_berria
+                update_geometry_from_params()
+                invalidate_aero_cache()
+                st.rerun()
 
     with col_sec:
         st.markdown(f"**{eu.CONFIG['sections_title']}**")
@@ -91,7 +98,7 @@ def render_config_page() -> None:
         if sekzio_berriak != st.session_state.puntu_kopurua:
             st.session_state.puntu_kopurua = sekzio_berriak
             update_geometry_from_params()
-            _handle_nominal_change()
+            invalidate_aero_cache()
             st.rerun()
 
     with st.expander(eu.CONFIG["aero_expander"]):
@@ -118,11 +125,14 @@ def render_config_page() -> None:
             or alpha_max != st.session_state.alpha_max
             or alpha_steps != st.session_state.alpha_steps
         ):
-            st.session_state.alpha_min = alpha_min
-            st.session_state.alpha_max = alpha_max
-            st.session_state.alpha_steps = alpha_steps
-            _handle_nominal_change()
-            st.rerun()
+            if alpha_min >= alpha_max:
+                academic_warning(eu.ERRORS["invalid_alpha"])
+            else:
+                st.session_state.alpha_min = alpha_min
+                st.session_state.alpha_max = alpha_max
+                st.session_state.alpha_steps = alpha_steps
+                invalidate_aero_cache()
+                st.rerun()
 
     section_divider()
 
@@ -145,8 +155,14 @@ def render_config_page() -> None:
         f"{st.session_state.erradio_max - st.session_state.erradio_min:.2f} m",
     )
     m2.metric(eu.CONFIG["metrics_tsr_mean"], f"{float(np.mean(lambda_array)):.2f}")
-    m3.metric(eu.CONFIG["metrics_re_min"], f"{float(np.min(reynolds_array)):.2e}")
-    m4.metric(eu.CONFIG["metrics_re_max"], f"{float(np.max(reynolds_array)):.2e}")
+    m3.metric(
+        eu.CONFIG["metrics_re_min"],
+        f"{float(np.min(reynolds_array)):.2e}" if len(reynolds_array) else "—",
+    )
+    m4.metric(
+        eu.CONFIG["metrics_re_max"],
+        f"{float(np.max(reynolds_array)):.2e}" if len(reynolds_array) else "—",
+    )
 
     tab_plan, tab_re, tab_tsr = st.tabs(
         [eu.CONFIG["tab_planform"], eu.CONFIG["tab_reynolds"], eu.CONFIG["tab_tsr"]]
@@ -197,7 +213,15 @@ def render_config_page() -> None:
         ],
         key="config_chord_editor",
     )
-    st.session_state.kordak = df_editatua[eu.CONFIG["col_chord"]].values
+
+    new_kordak = df_editatua[eu.CONFIG["col_chord"]].values
+    if not np.array_equal(new_kordak, st.session_state.kordak):
+        st.session_state.kordak = new_kordak
+        invalidate_aero_cache()
+
+    chords_valid = np.all(new_kordak > 0)
+    if not chords_valid:
+        academic_warning(eu.ERRORS["invalid_chord"])
 
     section_divider()
     col_back, col_btn, col_spacer = st.columns([1, 2, 1])
@@ -205,6 +229,15 @@ def render_config_page() -> None:
         if st.button(eu.CONFIG["back_to_landing"], use_container_width=True):
             go_to_hasiera()
     with col_btn:
-        if st.button(eu.CONFIG["start_analysis"], use_container_width=True):
+        start_disabled = (
+            st.session_state.erradio_min >= st.session_state.erradio_max
+            or st.session_state.alpha_min >= st.session_state.alpha_max
+            or not chords_valid
+        )
+        if st.button(
+            eu.CONFIG["start_analysis"],
+            use_container_width=True,
+            disabled=start_disabled,
+        ):
             reset_iteration_state()
             fasea_aldatu("1_URRATSA")

@@ -142,6 +142,13 @@ def build_polar_figure(results: list[dict], title: str, highlight_naca: str | No
 def build_ranking_figure(results: list[dict]) -> go.Figure:
     fig = go.Figure()
     if not results:
+        _finalize_figure(
+            fig,
+            eu.PLOTS["ranking_title"],
+            eu.PLOTS["ranking_x"],
+            eu.PLOTS["ranking_y"],
+            legend=False,
+        )
         return fig
 
     labels = [f"NACA {item['naca']}" for item in results]
@@ -165,8 +172,13 @@ def build_ranking_figure(results: list[dict]) -> go.Figure:
 
 
 def build_airfoil_geometry_figure(naca: str) -> go.Figure:
-    xs, ys = get_airfoil_coordinates(naca)
+    coords = get_airfoil_coordinates(naca)
     fig = go.Figure()
+    if coords is None:
+        fig.update_layout(title=eu.ERRORS["geometry_unavailable"])
+        return fig
+
+    xs, ys = coords
     fig.add_trace(
         go.Scatter(
             x=xs,
@@ -328,7 +340,10 @@ def build_overlaid_airfoils_figure(nacak: list[str]) -> go.Figure:
     fig = go.Figure()
     unique_nacak = list(dict.fromkeys(nacak))
     for i, naca in enumerate(unique_nacak):
-        xs, ys = get_airfoil_coordinates(naca)
+        coords = get_airfoil_coordinates(naca)
+        if coords is None:
+            continue
+        xs, ys = coords
         fig.add_trace(
             go.Scatter(
                 x=xs,
