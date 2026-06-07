@@ -16,15 +16,15 @@ LANDING = {
         {
             "title": "1. Konfigurazioa",
             "body": (
-                "Zehaztu parametro nominalak (RPM, haize-abiadura), pala geometria "
+                "Zehaztu parametro nominalak (RPM, haize-abiadura), palaren geometria "
                 "(erradioak eta kordak) eta estazio kopurua."
             ),
         },
         {
-            "title": "2. Estaziorako analisia",
+            "title": "2. Estazioen analisia",
             "body": (
-                "Pala zatitu estazioetan. Estazio bakoitzean, hiru urratsetan iragazi "
-                "profilak: lehenengo kurbadura (M), gero posizioa (P) eta azkenik lodiera (T)."
+                "Zatitu pala estazioetan. Estazio bakoitzean, iragazi profilak hiru "
+                "urratsetan: lehenengo kurbadura (M), gero posizioa (P) eta azkenik lodiera (T)."
             ),
         },
         {
@@ -44,7 +44,7 @@ LANDING = {
     ),
     "reynolds_title": "Zergatik da garrantzitsua Reynolds zenbakia?",
     "reynolds_body": (
-        "Profil bere batek portaera desberbina du eraso-angelu eta Reynolds zenbaki "
+        "Profil berak portaera desberdina du eraso-angelu eta Reynolds zenbaki "
         "desberdinetan. Estazio bakoitzean korda, erradioa, RPM eta haize-abiadura "
         "kontuan hartuta kalkulatzen da Reynolds lokala, eta horren arabera "
         "konparatzen dira profil alternatiboak NeuralFoil erabiliz."
@@ -75,8 +75,8 @@ PHASES = {
         "label": "Konfigurazioa",
         "title": "Iterazioaren konfigurazioa",
         "description": (
-            "Definitu parametro nominalak eta pala geometria. Hautaketak hasi aurretik "
-            "berrikusi kordak eta Reynolds banaketa."
+            "Definitu parametro nominalak eta palaren geometria. Hautaketak hasi aurretik "
+            "berrikusi kordak eta Reynolds-en banaketa."
         ),
     },
     "1_URRATSA": {
@@ -91,7 +91,7 @@ PHASES = {
         "label": "Kurbaduraren posizioa (P)",
         "title": "2. urratsa: kurbaduraren posizioa",
         "description": (
-            "Bigarren zifra (P) zehazten du kurbadura non kokatzen den kordaren luzeran. "
+            "Bigarren zifrak (P) zehazten du kurbadura kordaren luzeran non kokatzen den. "
             "Aukeratu profil egokiena grafikoetan eta sailkapenean oinarrituta."
         ),
     },
@@ -99,8 +99,8 @@ PHASES = {
         "label": "Lodiera (T)",
         "title": "3. urratsa: lodieraren aukeraketa",
         "description": (
-            "Azken bi zifrak lodiera strukturala definitzen dute. Hautatu profila eta "
-            "jarraitu hurrengo estaziora edo joan laburpenera azken estazioa bada."
+            "Azken bi zifrek lodiera egiturazkoa definitzen dute. Hautatu profila eta "
+            "jarraitu hurrengo estaziora, edo joan laburpenera azken estazioa bada."
         ),
     },
     "LABURPENA": {
@@ -146,7 +146,7 @@ CONFIG = {
     ),
     "rpm": "RPM",
     "wind_speed": "Haize-abiadura nominala (m/s)",
-    "geometry_title": "Pala geometria",
+    "geometry_title": "Palaren geometria",
     "hub_radius": "Hasierako erradioa — hub (m)",
     "max_radius": "Gehienezko erradioa (m)",
     "base_chord": "Oinarrizko korda (m)",
@@ -157,11 +157,11 @@ CONFIG = {
     "alpha_min": "Gutxieneko eraso-angelua (°)",
     "alpha_max": "Gehienezko eraso-angelua (°)",
     "alpha_steps": "Eraso-angelu urratsak",
-    "alpha_steps_help": "Urrats gutxiago kalkulua azkarragoa da, baina grafikoak loditzen dira.",
-    "metrics_blade_length": "Pala luzera",
+    "alpha_steps_help": "Urrats gutxiagorekin kalkulua azkarragoa da, baina kurbak ez dira hain leunak izango.",
+    "metrics_blade_length": "Palaren luzera",
     "metrics_tsr_mean": "TSR batez bestekoa",
-    "metrics_re_min": "Reynolds minimo",
-    "metrics_re_max": "Reynolds gehienezko",
+    "metrics_re_min": "Reynolds minimoa",
+    "metrics_re_max": "Reynolds maximoa",
     "chords_title": "Kordak eta Reynolds datuak",
     "tab_planform": "Planoa",
     "tab_reynolds": "Reynolds",
@@ -179,7 +179,7 @@ STEPS = {
     "select_prompt": "Egin klik profil batean edo hautatu zerrendatik:",
     "select_profile": "Profila hautatu",
     "select_placeholder": "Hautatu...",
-    "preview": "Geometria aurrebista",
+    "preview": "Geometriaren aurrebista",
     "symmetric_warning": (
         "Profil simetrikoa hautatu da (kurbadura = 0). "
         "Kurbaduraren posizioaren urratsa saltatuko da."
@@ -223,7 +223,7 @@ SUMMARY = {
 TRACKER = {
     "blade_progress": "Pala osatuta: {pct}%",
     "station_label": "Estazioa {current} / {total}",
-    "substep_label": "Urratsa uneko estazioan",
+    "substep_label": "Uneko estazioko urratsa",
     "station_map_title": "Estazioen mapa",
     "completed": "Osatuta",
     "active": "Aktiboa",
@@ -233,7 +233,7 @@ TRACKER = {
 ERRORS = {
     "unknown_phase": "Egoera ezezaguna. Itzuli hasierara.",
     "no_valid_profiles": "Ez da profil baliodunik aurkitu uneko parametroekin.",
-    "invalid_geometry": "Geometria baliogabea: hasierako erradioa gehienezko erradiotik txikiagoa izan behar da.",
+    "invalid_geometry": "Geometria baliogabea: hasierako erradioa gehienezko erradioa baino txikiagoa izan behar da.",
     "invalid_alpha": "Eraso-angeluen tartea baliogabea: gutxienekoa gehienezkoa baino txikiagoa izan behar da.",
     "invalid_chord": "Korda positiboa izan behar da estazio guztietan.",
     "naca_download_failed": "Ezin izan da profila deskargatu:",
