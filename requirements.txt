@@ -1,6 +1,6 @@
-streamlit
-numpy
-pandas
-plotly
-aerosandbox
-neuralfoil
+streamlit>=1.33,<2
+numpy>=1.26,<3
+pandas>=2.0,<3
+plotly>=5.18,<6
+aerosandbox>=4.2,<5
+neuralfoil>=0.3,<1
