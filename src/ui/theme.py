@@ -28,17 +28,28 @@ def inject_global_styles() -> None:
         <style>
         @import url('https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&display=swap');
 
-        html, body, [class*="css"], .stApp {{
+        .stApp {{
             font-family: {FONT_SERIF};
             color: {COLOR_TEXT};
-        }}
-
-        h1, h2, h3, h4, h5, h6, p, label, span, div {{
-            font-family: {FONT_SERIF} !important;
-        }}
-
-        .stApp {{
             background-color: {COLOR_BG};
+        }}
+
+        /* Serif solo en contenido textual, no en iconos de widgets */
+        .stMarkdown,
+        .stMarkdown p,
+        .stMarkdown h1,
+        .stMarkdown h2,
+        .stMarkdown h3,
+        .stMarkdown h4,
+        .stMarkdown h5,
+        .stMarkdown h6,
+        .stMarkdown li,
+        .stMarkdown td,
+        .stMarkdown th,
+        [data-testid="stMarkdownContainer"],
+        [data-testid="stWidgetLabel"] p,
+        [data-testid="stCaptionContainer"] {{
+            font-family: {FONT_SERIF} !important;
         }}
 
         [data-testid="stSidebar"] {{
@@ -46,8 +57,26 @@ def inject_global_styles() -> None:
             border-right: 1px solid {COLOR_BORDER};
         }}
 
-        [data-testid="stSidebar"] * {{
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"],
+        [data-testid="stSidebar"] [data-testid="stMetricLabel"],
+        [data-testid="stSidebar"] [data-testid="stMetricValue"] {{
             font-family: {FONT_SERIF} !important;
+        }}
+
+        /* Preservar fuentes de iconos internas de Streamlit/BaseWeb */
+        [data-testid="stExpanderToggleIcon"],
+        [data-testid="collapsedControl"],
+        [data-testid="stTooltipIcon"],
+        [data-testid="baseButton-headerNoPadding"],
+        .material-icons,
+        [class*="material-icons"],
+        svg {{
+            font-family: inherit !important;
+        }}
+
+        /* Evitar que el toggle del expander muestre texto de icono */
+        summary [data-testid="stExpanderToggleIcon"] {{
+            font-family: "Material Symbols Rounded", "Material Icons", sans-serif !important;
         }}
 
         .stButton > button {{
@@ -78,10 +107,28 @@ def inject_global_styles() -> None:
             color: {COLOR_BG} !important;
         }}
 
-        .stTextInput input, .stNumberInput input, .stSelectbox > div > div,
-        .stMultiSelect > div > div, [data-baseweb="select"] {{
+        .stTextInput input, .stNumberInput input {{
             border-radius: 0 !important;
             font-family: {FONT_SERIF} !important;
+        }}
+
+        .stSelectbox > div > div,
+        .stMultiSelect > div > div,
+        [data-baseweb="select"] {{
+            border-radius: 0 !important;
+        }}
+
+        [data-baseweb="select"] > div {{
+            font-family: {FONT_SERIF} !important;
+        }}
+
+        [data-baseweb="select"] svg {{
+            font-family: inherit !important;
+        }}
+
+        [data-testid="stNumberInput"] button,
+        [data-testid="stNumberInput"] svg {{
+            font-family: inherit !important;
         }}
 
         [data-testid="stMetric"] {{
@@ -138,6 +185,14 @@ def inject_global_styles() -> None:
             border-radius: 0 !important;
         }}
 
+        [data-testid="stExpander"] summary {{
+            font-family: {FONT_SERIF} !important;
+        }}
+
+        [data-testid="stExpander"] summary p {{
+            font-family: {FONT_SERIF} !important;
+        }}
+
         .stDataFrame, [data-testid="stDataFrame"] {{
             font-family: {FONT_SERIF} !important;
         }}
@@ -152,6 +207,18 @@ def inject_global_styles() -> None:
             border: none;
             border-top: 2px solid {COLOR_TEXT};
             margin: 0.5rem 0 1.5rem 0;
+        }}
+
+        .phase-active,
+        .phase-completed,
+        .phase-pending,
+        .academic-note,
+        .academic-warning,
+        .academic-result,
+        .tracker-station-active,
+        .tracker-station-done,
+        .tracker-station-pending {{
+            font-family: {FONT_SERIF} !important;
         }}
 
         .phase-active {{
